@@ -80,5 +80,5 @@ func main() {
 	docs.SwaggerInfo.Description = "Users API"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	log.Fatal(server.Run(":8080"))
+	log.Fatal(server.Run(":" + os.Getenv("PORT")))
 }
