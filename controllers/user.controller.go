@@ -46,7 +46,7 @@ func (pc *UserController) CreateUser(ctx *gin.Context) {
 			return
 		}
 
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (pc *UserController) UpdateUser(ctx *gin.Context) {
 
 	var user *models.UpdateUser
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
@@ -80,7 +80,7 @@ func (pc *UserController) UpdateUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": err.Error()})
 			return
 		}
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
@@ -103,7 +103,7 @@ func (pc *UserController) FindUserById(ctx *gin.Context) {
 	user, err := pc.userService.FindUserById(userId)
 
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
@@ -127,19 +127,19 @@ func (pc *UserController) FindUsers(ctx *gin.Context) {
 
 	intPage, err := strconv.Atoi(page)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
 	intLimit, err := strconv.Atoi(limit)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
 	users, err := pc.userService.FindUsers(intPage, intLimit)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
@@ -167,7 +167,7 @@ func (pc *UserController) DeleteUser(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, gin.H{"status": "fail", "message": err.Error()})
 			return
 		}
-		ctx.JSON(http.StatusBadGateway, gin.H{"status": "fail", "message": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
