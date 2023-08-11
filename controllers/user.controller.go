@@ -41,7 +41,7 @@ func (pc *UserController) CreateUser(ctx *gin.Context) {
 	newUser, err := pc.userService.CreateUser(user)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "title already exists") {
+		if strings.Contains(err.Error(), "email already exists") {
 			ctx.JSON(http.StatusConflict, gin.H{"status": "fail", "message": err.Error()})
 			return
 		}
