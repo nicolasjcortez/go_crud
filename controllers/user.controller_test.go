@@ -3,6 +3,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -17,13 +18,19 @@ import (
 )
 
 // MockUserService is a mock implementation of the UserService interface
-type MockUserService struct{}
+type MockUserService struct {
+	ShouldFailCreateUser409 bool
+}
 
 func NewMockUserService() services.UserService {
 	return &MockUserService{}
 }
 
 func (m *MockUserService) CreateUser(user *models.CreateUserRequest) (*models.User, error) {
+
+	if m.ShouldFailCreateUser409 {
+		return nil, errors.New("user with that email already exists")
+	}
 
 	return &models.User{
 		ID:      primitive.NewObjectID(),
@@ -133,6 +140,87 @@ func TestCreateUser(t *testing.T) {
 
 	// Check that the user was created successfully
 	assert.Equal(t, "success", response.Status)
+	assert.NotNil(t, response.Data)
+}
+
+func TestCreateUser_409(t *testing.T) {
+	mockUserService := &MockUserService{ShouldFailCreateUser409: true}
+	userController := NewUserController(mockUserService)
+
+	// Create a new user request
+	userReq := &models.CreateUserRequest{
+		Name:     "John Doe",
+		Age:      intPointer(30),
+		Email:    "john.doe@example.com",
+		Password: "123",
+		Address:  "123 Main St",
+	}
+
+	// Convert the user request to JSON
+	reqBody, _ := json.Marshal(userReq)
+
+	// Create a new HTTP POST request with the user data
+	req, _ := http.NewRequest("POST", "/api/users", strings.NewReader(string(reqBody)))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create a new gin context
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// Call the CreateUser handler
+	userController.CreateUser(c)
+
+	// Check the response status code
+	assert.Equal(t, http.StatusConflict, w.Code)
+
+	// Check the response body
+	var response models.CreateUserResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Nil(t, err)
+
+	// Check that the user was created successfully
+	assert.Equal(t, "fail", response.Status)
+	assert.NotNil(t, response.Data)
+}
+
+func TestCreateUser_400(t *testing.T) {
+	mockUserService := &MockUserService{}
+	userController := NewUserController(mockUserService)
+
+	// Create a new user request
+	userReq := &models.CreateUserRequest{
+		Age:      intPointer(30),
+		Email:    "john.doe@example.com",
+		Password: "123",
+		Address:  "123 Main St",
+	}
+
+	// Convert the user request to JSON
+	reqBody, _ := json.Marshal(userReq)
+
+	// Create a new HTTP POST request with the user data
+	req, _ := http.NewRequest("POST", "/api/users", strings.NewReader(string(reqBody)))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Create a new gin context
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Request = req
+
+	// Call the CreateUser handler
+	userController.CreateUser(c)
+
+	// Check the response status code
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+	// Check the response body
+	var response models.CreateUserResponse
+	err := json.Unmarshal(w.Body.Bytes(), &response)
+	assert.Nil(t, err)
+
+	// Check that the user was created successfully
+	assert.Equal(t, "fail", response.Status)
 	assert.NotNil(t, response.Data)
 }
 

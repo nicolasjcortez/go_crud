@@ -34,7 +34,7 @@ func (pc *UserController) CreateUser(ctx *gin.Context) {
 	var user *models.CreateUserRequest
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
