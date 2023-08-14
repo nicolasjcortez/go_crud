@@ -10,7 +10,9 @@ import (
 )
 
 // MockUserService is a mock implementation of the UserService interface
-type MockUserService struct{}
+type MockUserService struct {
+	ShouldFailCreateUser bool
+}
 
 func NewMockUserService() UserService {
 	return &MockUserService{}
@@ -103,6 +105,27 @@ func TestCreateUser(t *testing.T) {
 
 	user, err := mockUserService.CreateUser(userRequest)
 	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	assert.NotEqual(t, primitive.NilObjectID, user.ID)
+	assert.Equal(t, "John Doe", user.Name)
+	assert.Equal(t, 30, *user.Age)
+	assert.Equal(t, "john.doe@example.com", user.Email)
+	assert.Equal(t, "123 Main St", user.Address)
+}
+
+func TestCreateUserFail(t *testing.T) {
+	mockUserService := NewMockUserService()
+
+	// Test case: Valid user data
+	userRequest := &models.CreateUserRequest{
+		Age:      intPointer(30),
+		Email:    "john.doe@example.com",
+		Password: "password123",
+		Address:  "123 Main St",
+	}
+
+	user, err := mockUserService.CreateUser(userRequest)
+	assert.Error(t, err)
 	assert.NotNil(t, user)
 	assert.NotEqual(t, primitive.NilObjectID, user.ID)
 	assert.Equal(t, "John Doe", user.Name)
