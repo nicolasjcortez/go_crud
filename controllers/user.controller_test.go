@@ -143,7 +143,7 @@ func TestCreateUser(t *testing.T) {
 	assert.NotNil(t, response.Data)
 }
 
-func TestCreateUser_409(t *testing.T) {
+func TestCreateUserFail409(t *testing.T) {
 	mockUserService := &MockUserService{ShouldFailCreateUser409: true}
 	userController := NewUserController(mockUserService)
 
@@ -184,7 +184,7 @@ func TestCreateUser_409(t *testing.T) {
 	assert.NotNil(t, response.Data)
 }
 
-func TestCreateUser_400(t *testing.T) {
+func TestCreateUserFail400(t *testing.T) {
 	mockUserService := &MockUserService{}
 	userController := NewUserController(mockUserService)
 
