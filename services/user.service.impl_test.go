@@ -65,4 +65,34 @@ func TestUserServiceImpl_CreateUser_Success(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestUserServiceImpl_CreateUser_Fail(t *testing.T) {
+	mockCollection := &mongo.Collection{}
+	mockCtx := context.TODO()
+	userService := MockNewUserService(mockCollection, mockCtx)
+
+	mockUserRequest := &models.CreateUserRequest{
+		Age:      intPointer(30),
+		Email:    "john.doe@example.com",
+		Password: "password123",
+		Address:  "123 Main St",
+	}
+
+	insertOnePatch := monkey.PatchInstanceMethod(
+		reflect.TypeOf(&mongo.Collection{}), "InsertOne",
+		func(_ *mongo.Collection, _ context.Context, _ interface{}, _ ...*options.InsertOneOptions) (*mongo.InsertOneResult, error) {
+			return nil, mongo.WriteException{
+				WriteErrors: []mongo.WriteError{
+					{
+						Code: 11000,
+					},
+				},
+			}
+		})
+	defer insertOnePatch.Unpatch()
+
+	_, err := userService.CreateUser(mockUserRequest)
+
+	assert.ErrorContains(t, err, "email")
+}
+
 // ... Implement other test cases for other methods
